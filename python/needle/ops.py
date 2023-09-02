@@ -255,7 +255,7 @@ class Summation(TensorOp):
             sum_shape = [1 for _ in range(len(input_shape))]
 
         out_grad = reshape(out_grad, sum_shape)
-        return out_grad * array_api.ones(input_shape)
+        return broadcast_to(out_grad, input_shape)
 
 
 def summation(a, axes=None):
@@ -285,7 +285,7 @@ def matmul(a, b):
 
 class Negate(TensorOp):
     def compute(self, a):
-        return Negate()(a)
+        return array_api.negative(a)
 
     def gradient(self, out_grad: Tensor, node: Tensor):
         return -out_grad
@@ -339,15 +339,16 @@ class LogSumExp(TensorOp):
     def __init__(self, axes: Optional[tuple] = None):
         self.axes = axes
 
-    def compute(self, Z):
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+    def compute(self, z):
+        max_z = array_api.max(z, self.axes, keepdims=True)
+        exp_z = array_api.exp(z - max_z)
+        return array_api.log(array_api.sum(exp_z, self.axes)) + array_api.max(z, self.axes)
 
-    def gradient(self, out_grad, node):
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+    def gradient(self, out_grad: Tensor, node: Tensor):
+        z, = node.inputs
+        max_z = array_api.max(z.realize_cached_data(), self.axes, keepdims=True)
+        x = z - max_z
+        return broadcast_to(reshape(out_grad / summation(exp(x), self.axes), max_z.shape), z.shape) * exp(x)
 
 
 def logsumexp(a, axes=None):

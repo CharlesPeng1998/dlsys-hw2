@@ -44,7 +44,7 @@ class CPUDevice(Device):
     def randn(self, *shape):
         # note: numpy doesn't support types within standard random routines, and 
         # .astype("float32") does work if we're generating a singleton
-        return numpy.random.randn(*shape) 
+        return numpy.random.randn(*shape)
 
     def rand(self, *shape):
         # note: numpy doesn't support types within standard random routines, and 
@@ -88,7 +88,7 @@ class Op:
         raise NotImplementedError()
 
     def gradient(
-        self, out_grad: "Value", node: "Value"
+            self, out_grad: "Value", node: "Value"
     ) -> Union["Value", Tuple["Value"]]:
         """Compute partial adjoint for each input value for a given output adjoint.
 
@@ -164,13 +164,13 @@ class Value:
         TENSOR_COUNTER -= 1
 
     def _init(
-        self,
-        op: Optional[Op],
-        inputs: List["Tensor"],
-        *,
-        num_outputs: int = 1,
-        cached_data: List[object] = None,
-        requires_grad: Optional[bool] = None
+            self,
+            op: Optional[Op],
+            inputs: List["Tensor"],
+            *,
+            num_outputs: int = 1,
+            cached_data: List[object] = None,
+            requires_grad: Optional[bool] = None
     ):
         global TENSOR_COUNTER
         TENSOR_COUNTER += 1
@@ -242,13 +242,13 @@ class Tensor(Value):
     grad: "Tensor"
 
     def __init__(
-        self,
-        array,
-        *,
-        device: Optional[Device] = None,
-        dtype=None,
-        requires_grad=True,
-        **kwargs
+            self,
+            array,
+            *,
+            device: Optional[Device] = None,
+            dtype=None,
+            requires_grad=True,
+            **kwargs
     ):
         if isinstance(array, Tensor):
             if device is None:
@@ -423,10 +423,10 @@ def compute_gradient_of_variables(output_tensor, out_grad):
     reverse_topo_order = list(reversed(find_topo_sort([output_tensor])))
 
     for node in reverse_topo_order:
-        print(node_to_output_grads_list[node])
         node.grad = sum(node_to_output_grads_list[node])
 
         if node.op is not None:
+            global TENSOR_COUNTER
             grad_list = node.op.gradient_as_tuple(node.grad, node)
             for input_node, grad in zip(node.inputs, grad_list):
                 node_to_output_grads_list.setdefault(input_node, list())

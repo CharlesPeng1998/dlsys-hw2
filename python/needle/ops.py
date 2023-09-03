@@ -87,7 +87,11 @@ class AddScalar(TensorOp):
         self.scalar = scalar
 
     def compute(self, a: NDArray):
-        return a + self.scalar
+        # When 'a' is a zero dimension Numpy ndarray with type float32
+        # 'a' plus a scalar will get result with type float64
+        # Thus explicitly cast it back to type of 'a'
+        ret = (a + self.scalar).astype(a.dtype)
+        return ret
 
     def gradient(self, out_grad: Tensor, node: Tensor):
         return out_grad
@@ -254,8 +258,7 @@ class Summation(TensorOp):
         else:
             sum_shape = [1 for _ in range(len(input_shape))]
 
-        out_grad = reshape(out_grad, sum_shape)
-        return broadcast_to(out_grad, input_shape)
+        return broadcast_to(reshape(out_grad, sum_shape), input_shape)
 
 
 def summation(a, axes=None):
@@ -325,10 +328,10 @@ class ReLU(TensorOp):
     def compute(self, a):
         return array_api.maximum(a, 0)
 
-    def gradient(self, out_grad, node):
+    def gradient(self, out_grad: Tensor, node: Tensor):
         x, = node.inputs
         cached_data = x.cached_data
-        return out_grad * Tensor((cached_data > 0).astype(array_api.float32))
+        return out_grad * (cached_data > 0)
 
 
 def relu(a):

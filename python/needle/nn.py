@@ -1,6 +1,7 @@
 """The module.
 """
 from typing import List, Callable, Any
+import needle as ndl
 from needle.autograd import Tensor
 from needle import ops
 import needle.init as init
@@ -158,8 +159,8 @@ class BatchNorm1d(Module):
             batch_var = ops.summation((x - ops.broadcast_to(batch_mean, x.shape)) ** 2, axes=(0,)) / batch_size
 
             # Update running average of mean/variance
-            self.running_mean = self.running_mean * (1 - self.momentum) + batch_mean * self.momentum
-            self.running_var = self.running_var * (1 - self.momentum) + batch_var * self.momentum
+            self.running_mean.data = self.running_mean.data * (1 - self.momentum) + batch_mean.data * self.momentum
+            self.running_var.data = self.running_var.data * (1 - self.momentum) + batch_var.data * self.momentum
 
             mean = batch_mean
             var = batch_var

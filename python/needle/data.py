@@ -142,7 +142,8 @@ class MNISTDataset(Dataset):
         self.x, self.y = parse_mnist(image_filename, label_filename)
 
     def __getitem__(self, index) -> object:
-        return self.apply_transforms(self.x[index]), self.y[index]
+        transformed_x = self.apply_transforms(self.x[index])
+        return transformed_x.reshape((transformed_x.shape[0], -1)), self.y[index]
 
     def __len__(self) -> int:
         return len(self.x)
